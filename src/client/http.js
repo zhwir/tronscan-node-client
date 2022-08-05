@@ -3,7 +3,7 @@ const {
   buildTransferTransaction, buildVote, buildAssetParticipate, buildFreezeBalance, buildAssetIssue,
   buildUnfreezeBalance, buildAccountUpdate, buildWitnessUpdate, buildWithdrawBalance, buildWitnessCreate,
   buildUnfreezeAsset, buildExchangeCreate, buildExchangeInject, buildExchangeWithdraw, buildTransactionExchange,
-  buildTransferHexStr, buildTriggerSmartContract,getTriggerSmartContractParameterValue, getTransferContractParameterValue,
+  buildTransferHexStr, buildTriggerSmartContract, buildTriggerSmartContractTransaction, getTriggerSmartContractParameterValue, getTransferContractParameterValue,
   getTransferAssetContractParameterValue,getAccountPermissionUpdateContractParameterValue
 } = require("../utils/transactionBuilder");
 const {hexStr2byteArray} = require("../lib/code");
@@ -917,6 +917,31 @@ class ApiClient {
     getTriggerSmartContractHexStr(value) {
         let hexStr = buildTriggerSmartContract(value);
         return hexStr;
+    }
+
+    getTriggerSmartContractTransaction(value) {
+        return buildTriggerSmartContractTransaction(value);
+    }    
+
+    /*
+      refBlock: {number, hash, timestamp},
+      expiration: in minutes, default 5 minutes
+    */
+    async offlineSignTransaction(pk, transaction, refBlock, expiration = 5) {
+      // addRef
+      let numBytes = longToByteArray(refBlock.number);
+      numBytes.reverse();
+      let hashBytes = hexStr2byteArray(refBlock.hash);
+      let generateBlockId = [...numBytes.slice(0, 8), ...hashBytes.slice(8, hashBytes.length - 1)];
+      let rawData = transaction.getRawData();
+      rawData.setRefBlockHash(Uint8Array.from(generateBlockId.slice(8, 16)));
+      rawData.setRefBlockBytes(Uint8Array.from(numBytes.slice(6, 8)));
+      rawData.setExpiration(refBlock.timestamp + (expiration * 60 * 1000));
+      transaction.setRawData(rawData);
+      // sign
+      let privateKeySigner = this.getSigner(pk);
+      let {hex} = await privateKeySigner.signTransaction(transaction);
+      return hex;
     }
 
      getParameterValue (hexStr,ContractType){

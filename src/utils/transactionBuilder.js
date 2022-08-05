@@ -402,6 +402,27 @@ function buildTriggerSmartContract(value) {
     "TriggerSmartContract");
 }
 
+function buildTriggerSmartContractTransaction(value) {
+  let contract = new TriggerSmartContract();
+
+  contract.setOwnerAddress(fromHexString(value.owner_address));
+  contract.setContractAddress(fromHexString(value.contract_address));
+  contract.setData(fromHexString(value.data));
+  if(value.token_id){
+    contract.setTokenId(value.token_id);
+  }
+  if(value.call_token_value){
+    contract.setCallTokenValue(value.call_token_value)
+  }
+  if(value.call_value){
+    contract.setCallValue(value.call_value);
+  }
+  return buildTransferContract(
+    contract,
+    Transaction.Contract.ContractType.TRIGGERSMARTCONTRACT,
+    "TriggerSmartContract");
+}
+
 /**
  * Account Permission Update Contract
  *
@@ -646,6 +667,7 @@ module.exports = {
   buildAssetUpdate,
   buildTransferHexStr,
   buildTriggerSmartContract,
+  buildTriggerSmartContractTransaction,
   buildAccountPermissionUpdateContract,
   getTriggerSmartContractParameterValue,
   getTransferContractParameterValue,
