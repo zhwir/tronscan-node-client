@@ -919,6 +919,10 @@ class ApiClient {
         return hexStr;
     }
 
+    getTransferTransaction(from, to, amount) {
+        return buildTransferTransaction('_', from, to, amount);
+    }
+
     getTriggerSmartContractTransaction(value) {
         return buildTriggerSmartContractTransaction(value);
     }    
